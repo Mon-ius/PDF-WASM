@@ -1,0 +1,4 @@
+[submodule "deps/lopdf"]
+	path = deps/lopdf
+	url = git@github.com:Mon-ius/lopdf.git
+	shallow = true
