@@ -1,0 +1,45 @@
+name: build
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CARGO_TERM_COLOR: always
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        default: 'Cargo.toml'
+        required: false
+        type: string
+      platform:
+        default: 'ubuntu-latest'
+        required: false
+        type: string
+
+jobs:
+  ready:
+    uses: ./.github/workflows/parse.yml
+    with:
+      path: ${{ inputs.path }}
+
+  cross-build:
+    runs-on: ${{ inputs.platform }}
+    needs:
+      - ready
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          cd wasm && RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web --release
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: wasm/pkg/*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

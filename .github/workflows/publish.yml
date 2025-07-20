@@ -1,0 +1,30 @@
+name: publish
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        default: 'Cargo.toml'
+        required: true
+        type: string
+
+jobs:
+  ready:
+    uses: ./.github/workflows/parse.yml
+    with:
+      path: ${{ inputs.path }}
+  tag:
+    needs:
+      - ready
+    uses: ./.github/workflows/tag.yml
+    with:
+      version: ${{ needs.ready.outputs.version }}
+  release:
+    needs:
+      - tag
+    uses: ./.github/workflows/release.yml
+    with:
+      version: ${{ needs.tag.outputs.version }}
+      note: "add release for ${{ needs.tag.outputs.version }}"
+  publish:
+    uses: ./.github/workflows/build.yml

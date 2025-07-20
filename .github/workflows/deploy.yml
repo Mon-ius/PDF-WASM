@@ -25,15 +25,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - uses: Swatinem/rust-cache@v2
       - uses: dtolnay/rust-toolchain@nightly
       - uses: actions/configure-pages@v5
       - run: |
           curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - run: |
-          cd wasm
-          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web --release
-          cp -r ./pkg ./deploy      
+          cp -r ./assets ./wasm/deploy
+          cd wasm && RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web --release
+          cp -r ./pkg ./deploy
       - uses: actions/upload-pages-artifact@v3
         with:
           path: 'wasm/deploy'
