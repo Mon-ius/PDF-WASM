@@ -12,8 +12,8 @@ pub fn process_(
     let pages = doc.get_pages();
     
     for (num, _) in pages {
-        match doc.replace_text(num, &target_text, &replacement_text) {
-            Ok(_) => total += 1,
+        match doc.replace_partial_text(num, &target_text, &replacement_text, None) {
+            Ok(count) => total += count,
             Err(_) => continue,
         }
     }
