@@ -1,6 +1,6 @@
 [package]
 name = "pdf-wasm-bindings"
-version = "0.0.1"
+version = "0.0.5"
 edition = "2024"
 
 [dependencies]
@@ -10,3 +10,8 @@ wasm-bindgen = "0.2"
 
 [lib]
 crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1

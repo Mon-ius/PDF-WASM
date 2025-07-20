@@ -1,10 +1,10 @@
 use wasm_bindgen::prelude::*;
-use ld_::{process_, ProcessResult as OriginalProcessResult};
+use ld_::{process2_, MemResult};
 
 #[wasm_bindgen]
 pub struct ProcessResult {
     total: usize,
-    output: String,
+    mem: Vec<u8>,
 }
 
 #[wasm_bindgen]
@@ -15,27 +15,27 @@ impl ProcessResult {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn output(&self) -> String {
-        self.output.clone()
+    pub fn mem(&self) -> Vec<u8> {
+        self.mem.clone()
     }
 }
 
-impl From<OriginalProcessResult> for ProcessResult {
-    fn from(original: OriginalProcessResult) -> Self {
+impl From<MemResult> for ProcessResult {
+    fn from(result: MemResult) -> Self {
         ProcessResult {
-            total: original.total,
-            output: original.output,
+            total: result.total,
+            mem: result.mem,
         }
     }
 }
 
 #[wasm_bindgen]
 pub fn process_pdf(
-    input: String,
+    input: Vec<u8>,
     target_text: String,
     replacement_text: String,
 ) -> Result<ProcessResult, JsValue> {
-    match process_(input, target_text, replacement_text) {
+    match process2_(input, target_text, replacement_text) {
         Ok(result) => Ok(result.into()),
         Err(e) => Err(JsValue::from_str(&e.to_string())),
     }

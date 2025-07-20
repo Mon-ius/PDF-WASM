@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF WASM-Rust</title>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeIn 0.5s ease;
+            transition: box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container:hover {
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+        }
+
+        .status-notification {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+
+        .status-notification.active {
+            transform: translateY(0);
+        }
+
+        .status-notification.success {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+        }
+
+        .status-notification.error {
+            background: linear-gradient(135deg, #f44336, #e91e63);
+        }
+
+        .status-notification.processing {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .status-notification.downloaded {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+        }
+
+        .status-notification i {
+            font-size: 1.2em;
+        }
+
+        .status-notification span {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .main-content {
+            padding: 40px 40px 30px 40px;
+            transition: opacity 0.3s ease;
+        }
+
+        .main-content.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .drag-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.92);
+            border: 3px dashed #667eea;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 5;
+        }
+
+        .drag-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .drag-overlay i {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .drag-overlay p {
+            color: #666;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .github-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            z-index: 5;
+        }
+
+        .github-badge a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #333;
+            text-decoration: none;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .github-badge a:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .github-badge svg {
+            width: 26px;
+            height: 26px;
+            fill: currentColor;
+            transition: transform 0.3s ease;
+        }
+
+        .github-badge a:hover svg {
+            transform: rotate(360deg);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group.hide {
+            opacity: 0;
+            max-height: 0;
+            margin-bottom: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            background: rgba(102, 126, 234, 0.1);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.1);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="text"]:hover {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .dynamic-section {
+            position: relative;
+            min-height: 200px;
+        }
+
+        .text-inputs {
+            transition: all 0.3s ease;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .text-inputs.hide {
+            opacity: 0;
+            transform: translateY(-20px);
+            position: absolute;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .results {
+            margin-top: 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            pointer-events: none;
+        }
+
+        .results.active {
+            opacity: 1;
+            transform: translateY(0);
+            position: relative;
+            pointer-events: auto;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item label {
+            margin: 0;
+            font-size: 0.95em;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .result-item label i {
+            margin-right: 6px;
+            color: #667eea;
+        }
+
+        .result-item .value {
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+            word-break: break-all;
+            max-width: 300px;
+            line-height: 1.4;
+        }
+
+        .button-container {
+            margin-top: 20px;
+            min-height: 62px;
+            position: relative;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button[type="submit"]:hover:not(:disabled) {
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #7986f0, #8657c7);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .process-btn {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .process-btn.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .button-group.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .button-group button {
+            position: relative;
+            flex: 1;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #f44336, #e91e63);
+        }
+
+        .cancel-btn:hover:not(:disabled) {
+            box-shadow: 0 10px 25px rgba(244, 67, 54, 0.3);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+        }
+
+        .download-btn:hover:not(:disabled) {
+            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.3);
+            background: linear-gradient(135deg, #42a5f5, #1e88e5);
+        }
+
+        .error {
+            margin-top: 20px;
+            margin-bottom: 15px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(233, 30, 99, 0.1));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 16px;
+            color: #c62828;
+            font-weight: 500;
+            display: none;
+            position: relative;
+            padding-left: 32px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .error.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .error::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #f44336, #e91e63);
+        }
+
+        .ticket-divider {
+            position: relative;
+            height: 1px;
+            margin: 0 -40px;
+            overflow: visible;
+        }
+
+        .ticket-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #ddd,
+                #ddd 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            transform: translateY(-50%);
+        }
+
+        .info {
+            padding: 25px 40px 30px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 0 0 24px 24px;
+        }
+
+        .info .red {
+            color: #e91e63;
+            font-weight: 600;
+        }
+
+        .info .fa-heart {
+            font-size: 0.9em;
+        }
+
+        .info strong {
+            font-weight: 700;
+            color: #555;
+        }
+
+        .hash-info {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 15px;
+            margin-bottom: 0;
+            font-family: monospace;
+            letter-spacing: 0.5px;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .hash-info.show {
+            opacity: 1;
+            height: auto;
+        }
+
+        .hash-info i {
+            color: #667eea;
+            margin-right: 6px;
+        }
+
+        .global-footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9em;
+            margin-top: 30px;
+            line-height: 1.8;
+        }
+
+        .global-footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+            padding: 2px 0;
+        }
+
+        .global-footer a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .global-footer a:hover {
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .global-footer a:hover::after {
+            width: 100%;
+        }
+
+        .global-footer .fa {
+            margin: 0 5px;
+            opacity: 0.8;
+        }
+
+        .global-footer .copyright-line {
+            margin-bottom: 0;
+        }
+
+        .global-footer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .global-footer .rights-reserved {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .global-footer .copyright-line a {
+            font-weight: 900;
+            font-size: 1em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 2px 4px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="github-badge">
+                <a href="https://github.com/Mon-ius/PDF-WASM" target="_blank" rel="noopener noreferrer" title="View on GitHub">
+                    <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                </a>
+            </div>
+            
+            <div class="status-notification" id="statusNotification">
+                <i class="fa fa-hourglass-half" id="statusIcon"></i>
+                <span id="statusText">Ready</span>
+            </div>
+
+            <div class="drag-overlay" id="dragOverlay">
+                <i class="fa fa-cloud-upload"></i>
+                <p>Drop your PDF file here</p>
+            </div>
+
+            <div class="main-content" id="mainContent">
+                <h1>PDF WASM-Rust</h1>
+                
+                <form id="pdfForm">
+                    <div class="form-group">
+                        <label for="pdfFile">Select PDF File:</label>
+                        <input type="file" id="pdfFile" accept=".pdf" required>
+                    </div>
+                    
+                    <div class="dynamic-section">
+                        <div class="text-inputs" id="textInputs">
+                            <div class="form-group">
+                                <label for="targetText">Text to Search:</label>
+                                <input type="text" id="targetText" placeholder="Enter text to replace" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="replacementText">Replace With:</label>
+                                <input type="text" id="replacementText" placeholder="Enter replacement text" required>
+                            </div>
+                        </div>
+
+                        <div class="results" id="results">
+                            <div class="result-item">
+                                <label><i class="fa fa-refresh"></i> Replacements Made:</label>
+                                <span class="value" id="replacementsText">0</span>
+                            </div>
+                            <div class="result-item">
+                                <label><i class="fa fa-file-pdf-o"></i> Output File:</label>
+                                <span class="value" id="pathText">-</span>
+                            </div>
+                            <div class="result-item">
+                                <label><i class="fa fa-hdd-o"></i> File Size:</label>
+                                <span class="value" id="fileSizeText">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="button-container">
+                    <button type="submit" form="pdfForm" id="processBtn" class="process-btn">PROCESS</button>
+                    <div class="button-group" id="buttonGroup">
+                        <button class="cancel-btn" id="cancelBtn">CANCEL</button>
+                        <button class="download-btn" id="downloadBtn">DOWNLOAD</button>
+                    </div>
+                </div>
+                
+                <div class="error" id="error"></div>
+            </div>
+
+            <div class="ticket-divider"></div>
+
+            <div class="info">
+                <p><i class="fa fa-heart red"></i> <span class="red">No files are uploaded to any server</span><br>We use Rust based <strong>WASM</strong> to process PDF entirely in your browser</p>
+                <p class="hash-info" id="hashInfo"></p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="global-footer">
+        <p>
+            Licensed under the
+            <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">
+                GPLv3
+            </a>
+        </p>
+        <p class="copyright-line">
+            <i class="fa fa-copyright"></i> Copyright 2025 <a href="https://M0nius.com" target="_blank" rel="noopener noreferrer">M0NIUS.COM</a>
+        </p>
+        <p class="rights-reserved">All rights reserved.</p>
+    </footer>
+
+    <script type="module">
+        import init, { process_pdf } from './pkg/pdf_wasm_bindings.js';
+        
+        let wasmInitialized = false;
+        let processedPdfData = null;
+        let originalFileName = '';
+        let outputFileName = '';
+        let processingCancelled = false;
+
+        const statusNotification = document.getElementById('statusNotification');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const mainContent = document.getElementById('mainContent');
+        const dragOverlay = document.getElementById('dragOverlay');
+        const textInputs = document.getElementById('textInputs');
+        const results = document.getElementById('results');
+        const replacementsText = document.getElementById('replacementsText');
+        const pathText = document.getElementById('pathText');
+        const fileSizeText = document.getElementById('fileSizeText');
+        const hashInfo = document.getElementById('hashInfo');
+        const buttonGroup = document.getElementById('buttonGroup');
+        const processBtn = document.getElementById('processBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const errorDiv = document.getElementById('error');
+        const fileInput = document.getElementById('pdfFile');
+
+        async function initializeWasm() {
+            try {
+                await init('./pkg/pdf_wasm_bindings_bg.wasm');
+                wasmInitialized = true;
+                console.log('WASM initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize WASM:', error);
+                showError('Failed to initialize WASM: ' + error.message);
+                return false;
+            }
+        }
+
+        function showStatus(text, icon, type = 'processing') {
+            statusText.textContent = text;
+            statusIcon.className = `fa ${icon}`;
+            statusNotification.className = `status-notification active ${type}`;
+            
+            if (type === 'processing' && icon.includes('hourglass')) {
+                statusIcon.classList.add('fa-spin');
+            }
+        }
+
+        function hideStatus() {
+            statusNotification.classList.remove('active');
+        }
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.classList.add('show');
+            }, 10);
+            showStatus('Error!', 'fa-exclamation-circle', 'error');
+        }
+
+        function hideError() {
+            errorDiv.classList.remove('show');
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 200);
+        }
+
+        function generateOutputFilename(originalName) {
+            const timestamp = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0] + 
+                              new Date().getMilliseconds().toString().padStart(3, '0');
+            return originalName.replace('.pdf', `_${timestamp}.pdf`);
+        }
+
+        function downloadFile(filename, uint8Array) {
+            const blob = new Blob([uint8Array], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function calculateHash(uint8Array) {
+            const hashBuffer = await crypto.subtle.digest('SHA-1', uint8Array);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        function resetUI() {
+            processBtn.classList.remove('hidden');
+            processBtn.disabled = false;
+            buttonGroup.classList.remove('active');
+            textInputs.classList.remove('hide');
+            results.classList.remove('active');
+            hideError();
+            hideStatus();
+            processingCancelled = false;
+            
+            replacementsText.textContent = '0';
+            pathText.textContent = '-';
+            fileSizeText.textContent = '-';
+            hashInfo.textContent = '';
+            hashInfo.classList.remove('show');
+        }
+
+        async function handleFile(file) {
+            if (file && file.type === 'application/pdf') {
+                fileInput.files = createFileList([file]);
+                showStatus('File loaded: ' + file.name, 'fa-check-circle', 'success');
+                setTimeout(hideStatus, 2000);
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const hash = await calculateHash(uint8Array);
+                hashInfo.innerHTML = `<i class="fa fa-shield"></i>Original SHA-1: ${hash}`;
+                hashInfo.classList.add('show');
+            } else if (file) {
+                showError('Please select a valid PDF file');
+            }
+        }
+
+        function createFileList(files) {
+            const dt = new DataTransfer();
+            for (const file of files) {
+                dt.items.add(file);
+            }
+            return dt.files;
+        }
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        let dragCounter = 0;
+
+        document.body.addEventListener('dragenter', (e) => {
+            dragCounter++;
+            if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+                mainContent.classList.add('hidden');
+                dragOverlay.classList.add('active');
+            }
+        });
+
+        document.body.addEventListener('dragleave', (e) => {
+            dragCounter--;
+            if (dragCounter === 0) {
+                mainContent.classList.remove('hidden');
+                dragOverlay.classList.remove('active');
+            }
+        });
+
+        document.body.addEventListener('drop', (e) => {
+            dragCounter = 0;
+            mainContent.classList.remove('hidden');
+            dragOverlay.classList.remove('active');
+            
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                showStatus('File loaded: ' + file.name, 'fa-check-circle', 'success');
+                setTimeout(hideStatus, 2000);
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const hash = await calculateHash(uint8Array);
+                hashInfo.innerHTML = `<i class="fa fa-shield"></i>Original SHA-1: ${hash}`;
+                hashInfo.classList.add('show');
+            }
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            processingCancelled = true;
+            showStatus('Cancelled', 'fa-ban', 'error');
+            resetUI();
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (processedPdfData && outputFileName) {
+                downloadFile(outputFileName, processedPdfData);
+                showStatus('Downloaded!', 'fa-check-circle', 'downloaded');
+                setTimeout(hideStatus, 3000);
+            }
+        });
+
+        document.getElementById('pdfForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const targetText = document.getElementById('targetText').value;
+            const replacementText = document.getElementById('replacementText').value;
+            
+            if (!fileInput.files[0]) {
+                showError('Please select a PDF file');
+                return;
+            }
+
+            if (!wasmInitialized) {
+                console.log('WASM not initialized, initializing now...');
+                const success = await initializeWasm();
+                if (!success) {
+                    return;
+                }
+            }
+
+            hideError();
+            processingCancelled = false;
+            processedPdfData = null;
+            
+            processBtn.classList.add('hidden');
+            buttonGroup.classList.add('active');
+            downloadBtn.disabled = true;
+            
+            textInputs.classList.add('hide');
+            results.classList.add('active');
+            
+            showStatus('Processing...', 'fa-hourglass-half', 'processing');
+            replacementsText.textContent = '0';
+            pathText.textContent = '-';
+            fileSizeText.textContent = '-';
+
+            try {
+                const file = fileInput.files[0];
+                originalFileName = file.name;
+                
+                await new Promise(resolve => setTimeout(resolve, 300));
+                if (processingCancelled) return;
+                
+                showStatus('Reading file...', 'fa-book', 'processing');
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+                if (processingCancelled) return;
+                
+                showStatus('Analyzing PDF...', 'fa-search', 'processing');
+                
+                console.log('Processing PDF...');
+                console.log('File size:', uint8Array.length, 'bytes');
+                
+                const result = process_pdf(uint8Array, targetText, replacementText);
+                
+                if (processingCancelled) {
+                    result.free();
+                    return;
+                }
+                
+                processedPdfData = result.mem;
+                outputFileName = generateOutputFilename(originalFileName);
+                
+                showStatus('Complete!', 'fa-check-circle', 'success');
+                replacementsText.textContent = result.total.toString();
+                pathText.textContent = outputFileName;
+                fileSizeText.textContent = formatFileSize(processedPdfData.length);
+                
+                const hash = await calculateHash(processedPdfData);
+                hashInfo.innerHTML = `<i class="fa fa-shield"></i>Processed SHA-1: ${hash}`;
+                hashInfo.classList.add('show');
+                
+                downloadBtn.disabled = false;
+                
+                result.free();
+                
+            } catch (error) {
+                console.error('Processing error:', error);
+                showError('Error: ' + error.message);
+                downloadBtn.disabled = true;
+            }
+        });
+
+        initializeWasm().then(success => {
+            if (success) {
+                console.log('WASM module ready for use');
+            }
+        });
+    </script>
+</body>
+</html>
