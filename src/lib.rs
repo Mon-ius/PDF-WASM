@@ -1,12 +1,19 @@
-use std::path::PathBuf;
 use lopdf::Document;
+use chrono::Utc;
+
+pub struct ProcessResult {
+    pub total: usize,
+    pub output: String,
+}
 
 pub fn process_(
-    input: PathBuf,
-    output_path: PathBuf,
+    input: String,
     target_text: String,
     replacement_text: String,
-) -> Result<usize, Box<dyn std::error::Error>> {
+) -> Result<ProcessResult, Box<dyn std::error::Error>> {
+    let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+    let output = input.replace(".pdf", &format!("_{}_modified.pdf", timestamp));
+
     let mut doc = Document::load(input).unwrap();
     let mut total = 0;
     let pages = doc.get_pages();
@@ -18,10 +25,12 @@ pub fn process_(
         }
     }
     
-    doc.save(&output_path)?;
-    println!("* Modified PDF saved as: {}", output_path.display());
+    doc.save(&output)?;
 
-    Ok(total)
+    Ok(ProcessResult {
+        total,
+        output,
+    })
 }
 
 pub fn interface(
@@ -29,11 +38,8 @@ pub fn interface(
     target: String,
     replace: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let saved = file.replace(".pdf", "_modified.pdf");
-
-    let replacements = process_(file.into(), saved.into(), target, replace)?;
-    
-    println!("* Total replacements made: {}", replacements);
-    
+    let result = process_(file, target, replace)?;
+    println!("* Total replacements made: {}", result.total);
+    println!("* Output saved to: {}", result.output);
     Ok(())
 }
