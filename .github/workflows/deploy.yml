@@ -9,6 +9,7 @@ on:
       - "master"
     paths:
       - ".github/workflows/deploy.yml"
+      - "wasm/deploy/index.html"
       - "Cargo.toml"
 
 permissions:
