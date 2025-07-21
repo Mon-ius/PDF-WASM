@@ -4,13 +4,11 @@
 <img src="assets/favicon.png" alt="PDF-WASM" style="width: 50%; min-width: 300px; display: block; margin: auto;">
 </p>
 
-[![CI Status](https://github.com/Mon-ius/PDF-WASM/workflows/build/badge.svg)](https://github.com/Mon-ius/PDF-WASM/actions?query=workflow:deploy)
+[![CI Status](https://github.com/Mon-ius/PDF-WASM/workflows/deploy/badge.svg)](https://github.com/Mon-ius/PDF-WASM/actions?query=workflow:deploy)
 [![GitHub top language](https://img.shields.io/github/languages/top/Mon-ius/PDF-WASM?logo=rust&label=)](./Cargo.toml#L4)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 [![Code Size](https://img.shields.io/github/languages/code-size/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM)
 [![GitHub release (with filter)](https://img.shields.io/github/v/release/Mon-ius/PDF-WASM?logo=github)](https://github.com/Mon-ius/PDF-WASM/releases)
-
-> A rust based pdf in-text replace tool, with WASM library export.
 
 ```sh
 git clone --depth 1 --branch master --recurse-submodules 'https://github.com/Mon-ius/PDF-WASM'
