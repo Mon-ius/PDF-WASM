@@ -1,14 +1,13 @@
 # PDF-WASM
 
 [![GitHub release (with filter)](https://img.shields.io/github/v/release/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/releases)
-[![Code Size](https://img.shields.io/github/languages/code-size/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM)
 [![Issues](https://img.shields.io/github/issues/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/issues) 
 [![Forks](https://img.shields.io/github/forks/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/network/members)
 [![Stars](https://img.shields.io/github/stars/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/Mon-ius/PDF-WASM/total.svg)](https://github.com/Mon-ius/PDF-WASM/releases)
-
 [![CI Status](https://github.com/Mon-ius/PDF-WASM/workflows/deploy/badge.svg)](https://github.com/Mon-ius/PDF-WASM/actions?query=workflow:deploy)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
+[![Code Size](https://img.shields.io/github/languages/code-size/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM)
 [![GitHub top language](https://img.shields.io/github/languages/top/Mon-ius/PDF-WASM?logo=rust&label=)](./Cargo.toml#L4)
 
 <p align="center" width="100%">
