@@ -36,7 +36,7 @@ jobs:
       - run: |
           curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - run: |
-          cp -r ./assets ./wasm/deploy
+          cp ./assets/favicon.webp ./wasm/deploy
           cd wasm && RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web --release
           cp -r ./pkg ./deploy
       - uses: actions/upload-pages-artifact@v3
