@@ -9,6 +9,8 @@ struct Cli {
     target: String,
     #[arg(short = 'r', long = "replace", name = "REPLACE", help = "Text to replace with")]
     replace: String,
+    #[arg(short = 'p', long = "partial", help = "Use partial text replacement", default_value = "false")]
+    partial: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,6 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             cli.file,
             cli.target,
             cli.replace,
+            cli.partial,
         );
     }
 

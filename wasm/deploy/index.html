@@ -365,6 +365,85 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .checkbox-form-group {
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 18px 20px;
+            background: rgba(102, 126, 234, 0.06);
+            border-radius: 12px;
+            border: 2px solid rgba(102, 126, 234, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-group:hover {
+            background: rgba(102, 126, 234, 0.08);
+            border-color: rgba(102, 126, 234, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 6px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        input[type="checkbox"]:hover {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-label {
+            color: #555;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            margin: 0;
+            font-size: 1em;
+        }
+
+        .checkbox-description {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin: 0;
+            padding-left: 32px;
+        }
+
         .dynamic-section {
             position: relative;
             min-height: 200px;
@@ -776,6 +855,18 @@
                         <input type="file" id="pdfFile" accept=".pdf" required>
                     </div>
                     
+                    <div class="form-group checkbox-form-group">
+                        <div class="checkbox-group">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="fullSearch" checked>
+                                <label for="fullSearch" class="checkbox-label">Full Search Mode</label>
+                            </div>
+                            <div class="checkbox-description">
+                                Enable for precise full text matching and replacement.<br>Disable for partial text matching that can find text fragments.
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="dynamic-section">
                         <div class="text-inputs" id="textInputs">
                             <div class="form-group">
@@ -869,6 +960,7 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const errorDiv = document.getElementById('error');
         const fileInput = document.getElementById('pdfFile');
+        const fullSearchCheckbox = document.getElementById('fullSearch');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loadingText');
         const loadingProgressBar = document.getElementById('loadingProgressBar');
@@ -1197,6 +1289,8 @@
             
             const targetText = document.getElementById('targetText').value;
             const replacementText = document.getElementById('replacementText').value;
+            const useFullSearch = fullSearchCheckbox.checked;
+            const usePartial = !useFullSearch;
             
             if (!fileInput.files[0]) {
                 showError('Please select a PDF file');
@@ -1243,8 +1337,10 @@
                 
                 console.log('Processing PDF...');
                 console.log('File size:', uint8Array.length, 'bytes');
+                console.log('Full search mode:', useFullSearch);
+                console.log('Using partial matching:', usePartial);
                 
-                const result = process_pdf(uint8Array, targetText, replacementText);
+                const result = process_pdf(uint8Array, targetText, replacementText, usePartial);
                 
                 if (processingCancelled) {
                     result.free();

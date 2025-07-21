@@ -20,15 +20,24 @@ fn _process(
     doc: &mut Document,
     target_text: &str,
     replacement_text: &str,
+    use_partial: bool,
 ) -> usize {
     let mut total = 0;
     let pages = doc.get_pages();
     
     for (num, _) in pages {
-        match doc.replace_partial_text(num, target_text, replacement_text, None) {
-            Ok(count) => total += count,
-            Err(_) => continue,
-        }
+        let count = if use_partial {
+            match doc.replace_partial_text(num, target_text, replacement_text, None) {
+                Ok(count) => count,
+                Err(_) => continue,
+            }
+        } else {
+            match doc.replace_text(num, target_text, replacement_text, None) {
+                Ok(_) => 1,
+                Err(_) => continue,
+            }
+        };
+        total += count;
     }
     
     total
@@ -38,11 +47,12 @@ pub fn process_(
     input: String,
     target_text: String,
     replacement_text: String,
+    use_partial: bool,
 ) -> Result<FileResult, Box<dyn std::error::Error>> {
     let output = _output(input.clone());
     
     let mut doc = Document::load(&input)?;
-    let total = _process(&mut doc, &target_text, &replacement_text);
+    let total = _process(&mut doc, &target_text, &replacement_text, use_partial);
     
     doc.save(&output)?;
     
@@ -56,9 +66,10 @@ pub fn process2_(
     input: Vec<u8>,
     target_text: String,
     replacement_text: String,
+    use_partial: bool,
 ) -> Result<MemResult, Box<dyn std::error::Error>> {
     let mut doc = Document::load_mem(&input)?;
-    let total = _process(&mut doc, &target_text, &replacement_text);
+    let total = _process(&mut doc, &target_text, &replacement_text, use_partial);
     let mut mem = Vec::new();
     doc.save_to(&mut mem)?;
     
@@ -68,18 +79,18 @@ pub fn process2_(
     })
 }
 
-
 pub fn interface(
     file: String,
     target: String,
     replace: String,
+    use_partial: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let result = process_(file.clone(), target.clone(), replace.clone())?;
+    let result = process_(file.clone(), target.clone(), replace.clone(), use_partial)?;
     println!("* Total replacements made: {}", result.total);
     println!("* Output saved to: {}", result.output);
 
     let _bytes = std::fs::read(&file)?;
-    let result = process2_(_bytes, target, replace)?;
+    let result = process2_(_bytes, target, replace, use_partial)?;
     let output = _output(file);
     std::fs::write(&output, result.mem)?;
 

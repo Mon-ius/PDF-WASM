@@ -34,8 +34,9 @@ pub fn process_pdf(
     input: Vec<u8>,
     target_text: String,
     replacement_text: String,
+    use_partial: bool,
 ) -> Result<ProcessResult, JsValue> {
-    match process2_(input, target_text, replacement_text) {
+    match process2_(input, target_text, replacement_text, use_partial) {
         Ok(result) => Ok(result.into()),
         Err(e) => Err(JsValue::from_str(&e.to_string())),
     }
