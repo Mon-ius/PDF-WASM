@@ -16,6 +16,8 @@
 
 > A rust based pdf in-text replace tool, with WASM library export.
 
+# Install
+
 ```sh
 git clone --depth 1 --branch master --recurse-submodules 'https://github.com/Mon-ius/PDF-WASM'
 cd PDF-WASM
