@@ -17,7 +17,7 @@ on:
         type: string
 
 jobs:
-  ready:
+  parse:
     uses: ./.github/workflows/parse.yml
     with:
       path: ${{ inputs.path }}
@@ -25,7 +25,7 @@ jobs:
   cross-build:
     runs-on: ${{ inputs.platform }}
     needs:
-      - ready
+      - parse
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,6 +40,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: wasm/pkg/*
-          tag: ${{ github.ref }}
+          tag: refs/tags/${{ needs.ready.outputs.version }}
           overwrite: true
           file_glob: true

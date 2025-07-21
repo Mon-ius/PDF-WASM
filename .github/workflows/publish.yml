@@ -9,16 +9,16 @@ on:
         type: string
 
 jobs:
-  ready:
+  parse:
     uses: ./.github/workflows/parse.yml
     with:
       path: ${{ inputs.path }}
   tag:
     needs:
-      - ready
+      - parse
     uses: ./.github/workflows/tag.yml
     with:
-      version: ${{ needs.ready.outputs.version }}
+      version: ${{ needs.parse.outputs.version }}
   release:
     needs:
       - tag
