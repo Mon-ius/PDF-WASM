@@ -5,10 +5,10 @@
 </p>
 
 [![CI Status](https://github.com/Mon-ius/PDF-WASM/workflows/deploy/badge.svg)](https://github.com/Mon-ius/PDF-WASM/actions?query=workflow:deploy)
-[![GitHub top language](https://img.shields.io/github/languages/top/Mon-ius/PDF-WASM?logo=rust&label=)](./Cargo.toml#L4)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 [![Code Size](https://img.shields.io/github/languages/code-size/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM)
 [![GitHub release (with filter)](https://img.shields.io/github/v/release/Mon-ius/PDF-WASM?logo=github)](https://github.com/Mon-ius/PDF-WASM/releases)
+[![GitHub top language](https://img.shields.io/github/languages/top/Mon-ius/PDF-WASM?logo=rust&label=)](./Cargo.toml#L4)
 
 ```sh
 git clone --depth 1 --branch master --recurse-submodules 'https://github.com/Mon-ius/PDF-WASM'

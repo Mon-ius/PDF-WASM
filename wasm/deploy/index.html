@@ -780,8 +780,7 @@
         }
 
         function generateOutputFilename(originalName) {
-            const timestamp = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0] + 
-                              new Date().getMilliseconds().toString().padStart(3, '0');
+            const timestamp = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0] + new Date().getMilliseconds().toString().padStart(3, '0');
             return originalName.replace('.pdf', `_${timestamp}.pdf`);
         }
 

@@ -40,6 +40,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: wasm/pkg/*
-          tag: refs/tags/${{ needs.ready.outputs.version }}
+          tag: refs/tags/${{ needs.parse.outputs.version }}
           overwrite: true
           file_glob: true
