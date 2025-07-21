@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF WASM-Rust</title>
     <link rel="icon" type="image/webp" href="favicon.webp">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="preload" href="./pkg/pdf_wasm_bindings_bg.wasm" as="fetch" type="application/wasm" crossorigin>
     <link rel="modulepreload" href="./pkg/pdf_wasm_bindings.js">
     
@@ -119,28 +122,6 @@
             font-size: 1em;
         }
 
-        .icon {
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            vertical-align: -0.125em;
-            fill: currentColor;
-        }
-
-        .icon-lg {
-            width: 1.5em;
-            height: 1.5em;
-        }
-
-        .icon-xl {
-            width: 3em;
-            height: 3em;
-        }
-
-        .spin {
-            animation: spin 1s linear infinite;
-        }
-
         .main-wrapper {
             flex: 1;
             display: flex;
@@ -215,6 +196,10 @@
             background: linear-gradient(135deg, #2196f3, #1976d2);
         }
 
+        .status-notification i {
+            font-size: 1.2em;
+        }
+
         .status-notification span {
             flex: 1;
             font-weight: 500;
@@ -254,11 +239,16 @@
             pointer-events: all;
         }
 
+        .drag-overlay i {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
         .drag-overlay p {
             color: #666;
             font-size: 1.2em;
             font-weight: 500;
-            margin-top: 20px;
         }
 
         h1 {
@@ -433,12 +423,10 @@
             font-size: 0.95em;
             color: #666;
             flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
-        .result-item .icon {
+        .result-item label i {
+            margin-right: 6px;
             color: #667eea;
         }
 
@@ -616,6 +604,10 @@
             font-weight: 600;
         }
 
+        .info .fa-heart {
+            font-size: 0.9em;
+        }
+
         .info strong {
             font-weight: 700;
             color: #555;
@@ -632,10 +624,6 @@
             opacity: 0;
             height: 0;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
         }
 
         .hash-info.show {
@@ -643,8 +631,9 @@
             height: auto;
         }
 
-        .hash-info .icon {
+        .hash-info i {
             color: #667eea;
+            margin-right: 6px;
         }
 
         .global-footer {
@@ -688,6 +677,11 @@
             width: 100%;
         }
 
+        .global-footer .fa {
+            margin: 0 5px;
+            opacity: 0.8;
+        }
+
         .global-footer .copyright-line {
             margin-bottom: 0;
         }
@@ -715,6 +709,10 @@
             100% { transform: rotate(360deg); }
         }
 
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+
         @media (max-width: 600px) {
             .container {
                 margin: 0 10px;
@@ -731,48 +729,6 @@
     </style>
 </head>
 <body>
-    <!-- Hidden SVG sprite sheet -->
-    <svg style="display: none;">
-        <defs>
-            <symbol id="icon-hourglass" viewBox="0 0 24 24">
-                <path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/>
-            </symbol>
-            <symbol id="icon-check-circle" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </symbol>
-            <symbol id="icon-error" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </symbol>
-            <symbol id="icon-ban" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/>
-            </symbol>
-            <symbol id="icon-book" viewBox="0 0 24 24">
-                <path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>
-            </symbol>
-            <symbol id="icon-search" viewBox="0 0 24 24">
-                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </symbol>
-            <symbol id="icon-cloud-upload" viewBox="0 0 24 24">
-                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
-            </symbol>
-            <symbol id="icon-refresh" viewBox="0 0 24 24">
-                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-            </symbol>
-            <symbol id="icon-pdf" viewBox="0 0 24 24">
-                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19L8,14H9.5L10.5,17L11.5,14H13L11,19H10M15,10V11H18V13H15V14H18V16H15V19H13V10H18V10H15Z"/>
-            </symbol>
-            <symbol id="icon-disk" viewBox="0 0 24 24">
-                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
-            </symbol>
-            <symbol id="icon-heart" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </symbol>
-            <symbol id="icon-shield" viewBox="0 0 24 24">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-            </symbol>
-        </defs>
-    </svg>
-
     <div class="offline-indicator" id="offlineIndicator">
         <span id="networkStatus">You are currently offline. Some features may be limited.</span>
     </div>
@@ -802,14 +758,12 @@
             </div>
             
             <div class="status-notification" id="statusNotification">
-                <svg class="icon icon-lg" id="statusIcon"><use href="#icon-hourglass"/></svg>
+                <i class="fa fa-hourglass-half" id="statusIcon"></i>
                 <span id="statusText">Ready</span>
             </div>
 
             <div class="drag-overlay" id="dragOverlay">
-                <svg class="icon icon-xl" style="color: #667eea;">
-                    <use href="#icon-cloud-upload"/>
-                </svg>
+                <i class="fa fa-cloud-upload"></i>
                 <p>Drop your PDF file here</p>
             </div>
 
@@ -837,24 +791,15 @@
 
                         <div class="results" id="results">
                             <div class="result-item">
-                                <label>
-                                    <svg class="icon"><use href="#icon-refresh"/></svg>
-                                    Replacements Made:
-                                </label>
+                                <label><i class="fa fa-refresh"></i> Replacements Made:</label>
                                 <span class="value" id="replacementsText">0</span>
                             </div>
                             <div class="result-item">
-                                <label>
-                                    <svg class="icon"><use href="#icon-pdf"/></svg>
-                                    Output File:
-                                </label>
+                                <label><i class="fa fa-file-pdf-o"></i> Output File:</label>
                                 <span class="value" id="pathText">-</span>
                             </div>
                             <div class="result-item">
-                                <label>
-                                    <svg class="icon"><use href="#icon-disk"/></svg>
-                                    File Size:
-                                </label>
+                                <label><i class="fa fa-hdd-o"></i> File Size:</label>
                                 <span class="value" id="fileSizeText">-</span>
                             </div>
                         </div>
@@ -875,11 +820,7 @@
             <div class="ticket-divider"></div>
 
             <div class="info">
-                <p>
-                    <svg class="icon red" style="vertical-align: -0.15em;"><use href="#icon-heart"/></svg>
-                    <span class="red">No files are uploaded to any server</span><br>
-                    We use Rust based <strong>WASM</strong> to process PDF entirely in your browser
-                </p>
+                <p><i class="fa fa-heart red"></i> <span class="red">No files are uploaded to any server</span><br>We use Rust based <strong>WASM</strong> to process PDF entirely in your browser</p>
                 <p class="hash-info" id="hashInfo"></p>
             </div>
         </div>
@@ -893,7 +834,7 @@
             </a>
         </p>
         <p class="copyright-line">
-            © Copyright 2025 <a href="https://M0nius.com" target="_blank" rel="noopener noreferrer">M0NIUS.COM</a>
+            <i class="fa fa-copyright"></i> Copyright 2025 <a href="https://M0nius.com" target="_blank" rel="noopener noreferrer">M0NIUS.COM</a>
         </p>
         <p class="rights-reserved">All rights reserved.</p>
     </footer>
@@ -935,16 +876,6 @@
         const loadingErrorText = document.getElementById('loadingErrorText');
         const offlineIndicator = document.getElementById('offlineIndicator');
         const networkStatus = document.getElementById('networkStatus');
-
-        const iconMap = {
-            'hourglass': 'icon-hourglass',
-            'check-circle': 'icon-check-circle',
-            'error': 'icon-error',
-            'ban': 'icon-ban',
-            'book': 'icon-book',
-            'search': 'icon-search',
-            'shield': 'icon-shield'
-        };
 
         function updateNetworkStatus() {
             if (!navigator.onLine) {
@@ -1090,16 +1021,13 @@
             }
         };
 
-        function showStatus(text, iconName, type = 'processing') {
+        function showStatus(text, icon, type = 'processing') {
             statusText.textContent = text;
-            const iconId = iconMap[iconName] || iconName;
-            statusIcon.innerHTML = `<use href="#${iconId}"/>`;
+            statusIcon.className = `fa ${icon}`;
             statusNotification.className = `status-notification active ${type}`;
             
-            if (type === 'processing' && iconName === 'hourglass') {
-                statusIcon.classList.add('spin');
-            } else {
-                statusIcon.classList.remove('spin');
+            if (type === 'processing' && icon.includes('hourglass')) {
+                statusIcon.classList.add('fa-spin');
             }
         }
 
@@ -1113,7 +1041,7 @@
             setTimeout(() => {
                 errorDiv.classList.add('show');
             }, 10);
-            showStatus('Error!', 'error', 'error');
+            showStatus('Error!', 'fa-exclamation-circle', 'error');
         }
 
         function hideError() {
@@ -1149,7 +1077,7 @@
         }
 
         async function calculateHash(uint8Array) {
-            const hashBuffer = await crypto.subtle.digest('SHA-256', uint8Array);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', uint8Array);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             return hashHex;
@@ -1168,20 +1096,20 @@
             replacementsText.textContent = '0';
             pathText.textContent = '-';
             fileSizeText.textContent = '-';
-            hashInfo.innerHTML = '';
+            hashInfo.textContent = '';
             hashInfo.classList.remove('show');
         }
 
         async function handleFile(file) {
             if (file && file.type === 'application/pdf') {
                 fileInput.files = createFileList([file]);
-                showStatus('File loaded: ' + file.name, 'check-circle', 'success');
+                showStatus('File loaded: ' + file.name, 'fa-check-circle', 'success');
                 setTimeout(hideStatus, 2000);
                 
                 const arrayBuffer = await file.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 const hash = await calculateHash(uint8Array);
-                hashInfo.innerHTML = `<svg class="icon"><use href="#icon-shield"/></svg>Original SHA-256: ${hash}`;
+                hashInfo.innerHTML = `<i class="fa fa-shield"></i>Original SHA-1: ${hash}`;
                 hashInfo.classList.add('show');
             } else if (file) {
                 showError('Please select a valid PDF file');
@@ -1239,27 +1167,27 @@
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
-                showStatus('File loaded: ' + file.name, 'check-circle', 'success');
+                showStatus('File loaded: ' + file.name, 'fa-check-circle', 'success');
                 setTimeout(hideStatus, 2000);
                 
                 const arrayBuffer = await file.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 const hash = await calculateHash(uint8Array);
-                hashInfo.innerHTML = `<svg class="icon"><use href="#icon-shield"/></svg>Original SHA-256: ${hash}`;
+                hashInfo.innerHTML = `<i class="fa fa-shield"></i>Original SHA-1: ${hash}`;
                 hashInfo.classList.add('show');
             }
         });
 
         cancelBtn.addEventListener('click', () => {
             processingCancelled = true;
-            showStatus('Cancelled', 'ban', 'error');
+            showStatus('Cancelled', 'fa-ban', 'error');
             resetUI();
         });
 
         downloadBtn.addEventListener('click', () => {
             if (processedPdfData && outputFileName) {
                 downloadFile(outputFileName, processedPdfData);
-                showStatus('Downloaded!', 'check-circle', 'downloaded');
+                showStatus('Downloaded!', 'fa-check-circle', 'downloaded');
                 setTimeout(hideStatus, 3000);
             }
         });
@@ -1291,7 +1219,7 @@
             textInputs.classList.add('hide');
             results.classList.add('active');
             
-            showStatus('Processing...', 'hourglass', 'processing');
+            showStatus('Processing...', 'fa-hourglass-half', 'processing');
             replacementsText.textContent = '0';
             pathText.textContent = '-';
             fileSizeText.textContent = '-';
@@ -1303,7 +1231,7 @@
                 await new Promise(resolve => setTimeout(resolve, 300));
                 if (processingCancelled) return;
                 
-                showStatus('Reading file...', 'book', 'processing');
+                showStatus('Reading file...', 'fa-book', 'processing');
                 
                 const arrayBuffer = await file.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
@@ -1311,7 +1239,7 @@
                 await new Promise(resolve => setTimeout(resolve, 200));
                 if (processingCancelled) return;
                 
-                showStatus('Analyzing PDF...', 'search', 'processing');
+                showStatus('Analyzing PDF...', 'fa-search', 'processing');
                 
                 console.log('Processing PDF...');
                 console.log('File size:', uint8Array.length, 'bytes');
@@ -1326,13 +1254,13 @@
                 processedPdfData = result.mem;
                 outputFileName = generateOutputFilename(originalFileName);
                 
-                showStatus('Complete!', 'check-circle', 'success');
+                showStatus('Complete!', 'fa-check-circle', 'success');
                 replacementsText.textContent = result.total.toString();
                 pathText.textContent = outputFileName;
                 fileSizeText.textContent = formatFileSize(processedPdfData.length);
                 
                 const hash = await calculateHash(processedPdfData);
-                hashInfo.innerHTML = `<svg class="icon"><use href="#icon-shield"/></svg>Processed SHA-256: ${hash}`;
+                hashInfo.innerHTML = `<i class="fa fa-shield"></i>Processed SHA-1: ${hash}`;
                 hashInfo.classList.add('show');
                 
                 downloadBtn.disabled = false;
