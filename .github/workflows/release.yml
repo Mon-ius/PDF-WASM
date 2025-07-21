@@ -26,7 +26,6 @@ jobs:
       tag: ${{ steps.release.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-      
       - id: check-release
         name: Check if release exists
         run: |
