@@ -1,6 +1,6 @@
 # PDF-WASM
 
-[![CI Status](https://github.com/Mon-ius/PDF-WASM/workflows/deploy/badge.svg)](https://github.com/Mon-ius/PDF-WASM/actions?query=workflow:deploy)
+[![CI Status](https://github.com/Mon-ius/PDF-WASM/workflows/ci/badge.svg)](https://github.com/Mon-ius/PDF-WASM/actions?query=workflow:ci)
 [![GitHub release (with filter)](https://img.shields.io/github/v/release/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/releases)
 [![Issues](https://img.shields.io/github/issues/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/issues) 
 [![Forks](https://img.shields.io/github/forks/Mon-ius/PDF-WASM)](https://github.com/Mon-ius/PDF-WASM/network/members)
