@@ -10,10 +10,12 @@ const CRITICAL_ASSETS = [
 
 const OPTIONAL_ASSETS = [
     './favicon.webp',
-    'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css',
-    'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/fonts/fontawesome-webfont.woff2',
-    'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/fonts/fontawesome-webfont.woff',
-    'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/fonts/fontawesome-webfont.ttf'
+    './font-awesome.min.css',
+    './fonts/fontawesome-webfont.woff2',
+    './fonts/fontawesome-webfont.woff',
+    './fonts/fontawesome-webfont.ttf',
+    './fonts/fontawesome-webfont.eot',
+    './fonts/fontawesome-webfont.svg'
 ];
 
 const CACHE_STRATEGIES = {
@@ -25,25 +27,22 @@ const CACHE_STRATEGIES = {
         /\.woff2?$/,
         /\.ttf$/,
         /\.eot$/,
-        /fontawesome.*\.(svg|woff2?|ttf|eot)$/
+        /\.svg$/,
+        /fontawesome/
     ],
     networkFirst: [
         /\.html$/,
         /\/$/
-    ],
-    staleWhileRevalidate: [
-        /cdn\.jsdelivr\.net/,
-        /cdnjs\.cloudflare\.com/
     ]
 };
 
 const CACHE_DURATION = {
-    wasm: 7 * 24 * 60 * 60 * 1000, // 7 days
-    js: 24 * 60 * 60 * 1000, // 1 day
-    css: 24 * 60 * 60 * 1000, // 1 day
-    fonts: 30 * 24 * 60 * 60 * 1000, // 30 days
-    html: 60 * 60 * 1000, // 1 hour
-    default: 24 * 60 * 60 * 1000 // 1 day
+    wasm: 7 * 24 * 60 * 60 * 1000,
+    js: 24 * 60 * 60 * 1000,
+    css: 24 * 60 * 60 * 1000,
+    fonts: 30 * 24 * 60 * 60 * 1000,
+    html: 60 * 60 * 1000,
+    default: 24 * 60 * 60 * 1000
 };
 
 self.addEventListener('install', event => {
@@ -80,7 +79,7 @@ self.addEventListener('activate', event => {
                     .map(name => caches.delete(name))
             );
             const cache = await caches.open(CACHE_NAME);
-            const fontUrls = OPTIONAL_ASSETS.filter(url => /\.(woff2?|ttf)$/.test(url));
+            const fontUrls = OPTIONAL_ASSETS.filter(url => /\.(woff2?|ttf|eot|svg)$/.test(url));
             await Promise.all(
                 fontUrls.map(url => 
                     cache.match(url).then(response => {
@@ -101,11 +100,7 @@ self.addEventListener('fetch', event => {
     const url = new URL(request.url);
     
     if (request.method !== 'GET') return;
-    if (url.origin !== self.location.origin && 
-        !url.hostname.includes('cdn.jsdelivr.net') && 
-        !url.hostname.includes('cdnjs.cloudflare.com')) {
-        return;
-    }
+    if (url.origin !== self.location.origin) return;
     
     event.respondWith(handleFetch(request));
 });
@@ -130,8 +125,6 @@ async function handleFetch(request) {
             return cacheFirst(request);
         case 'networkFirst':
             return networkFirst(request);
-        case 'staleWhileRevalidate':
-            return staleWhileRevalidate(request);
         default:
             return networkFirst(request);
     }
@@ -169,39 +162,11 @@ async function networkFirst(request) {
     }
 }
 
-async function staleWhileRevalidate(request) {
-    const cached = await getCachedResponse(request);
-    if (cached && !isExpired(cached)) {
-        fetchWithTimeout(request)
-            .then(response => {
-                if (response.ok) {
-                    putInCache(request, response.clone());
-                }
-            })
-            .catch(() => {
-                // Silently fail background update
-            });
-        
-        return cached;
-    }
-    
-    try {
-        const response = await fetchWithTimeout(request);
-        if (response.ok) {
-            await putInCache(request, response.clone());
-        }
-        return response;
-    } catch (error) {
-        if (cached) return cached;
-        throw error;
-    }
-}
-
 async function cacheWithRetry(cache, url, maxRetries = 3) {
     for (let i = 0; i < maxRetries; i++) {
         try {
             const request = new Request(url, {
-                mode: url.includes('cdn') ? 'cors' : 'same-origin'
+                mode: 'same-origin'
             });
             const response = await fetchWithTimeout(request);
             if (response.ok || response.status === 0) {
@@ -247,7 +212,7 @@ async function fetchWithTimeout(request, timeout = null) {
     try {
         const response = await fetch(request, {
             signal: controller.signal,
-            mode: request.mode || 'cors',
+            mode: request.mode || 'same-origin',
             credentials: request.credentials || 'omit',
             cache: 'default'
         });
