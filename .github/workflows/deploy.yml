@@ -40,7 +40,7 @@ jobs:
           cp ./assets/favicon.webp ./wasm/deploy
           cd wasm && RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web --release
           cp -r ./pkg ./deploy
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: 'wasm/deploy'
       - uses: actions/deploy-pages@v4
